@@ -1,19 +1,25 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html>
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>{{ config('app.name', 'School LMS') }}</title>
-
-
+    <title>School LMS Login</title>
 </head>
 
-<body
-    class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
+<body>
 
-    <h1 class="text-3xl font-bold mb-6">Login Page </h1>
+    <h2>Login</h2>
+
+    @if ($errors->any())
+        <p style="color:red">{{ $errors->first() }}</p>
+    @endif
+
+    <form method="POST" action="{{ route('login.submit') }}">
+        @csrf
+        <input type="email" name="email" placeholder="Email" required><br><br>
+        <input type="password" name="password" placeholder="Password" required><br><br>
+        <button type="submit">Login</button>
+    </form>
+
 </body>
 
 </html>

@@ -2,11 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\ParentController;
 
 // =====================
 // Authentication Routes
 // =====================
-Route::prefix('auth')->group(function () {
+
     // Login
     Route::get('/login', fn() => view('auth.login'))->name('auth.login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -25,37 +29,28 @@ Route::prefix('auth')->group(function () {
 
     // Logout
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
-});
+
 
 // =====================
 // Dashboard Routes
 // =====================
-Route::prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        if (session('role') !== 'admin') return redirect()->route('auth.login');
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+
+
+// Role-based dashboard routes using controllers and middleware
+Route::middleware(['role:admin'])->group(function () {
+    Route::get('/admin/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('admin.dashboard');
 });
 
-Route::prefix('teacher')->group(function () {
-    Route::get('/dashboard', function () {
-        if (session('role') !== 'teacher') return redirect()->route('auth.login');
-        return view('teacher.dashboard');
-    })->name('teacher.dashboard');
+Route::middleware(['role:teacher'])->group(function () {
+    Route::get('/teacher/dashboard', [App\Http\Controllers\Admin\TeacherController::class, 'dashboard'])->name('teacher.dashboard');
 });
 
-Route::prefix('student')->group(function () {
-    Route::get('/dashboard', function () {
-        if (session('role') !== 'student') return redirect()->route('auth.login');
-        return view('student.dashboard');
-    })->name('student.dashboard');
+Route::middleware(['role:student'])->group(function () {
+    Route::get('/student/dashboard', [App\Http\Controllers\Admin\StudentController::class, 'dashboard'])->name('student.dashboard');
 });
 
-Route::prefix('parent')->group(function () {
-    Route::get('/dashboard', function () {
-        if (session('role') !== 'parent') return redirect()->route('auth.login');
-        return view('parent.dashboard');
-    })->name('parent.dashboard');
+Route::middleware(['role:parent'])->group(function () {
+    Route::get('/parent/dashboard', [App\Http\Controllers\Admin\ParentController::class, 'dashboard'])->name('parent.dashboard');
 });
 
 

@@ -1,43 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <title>School LMS Login</title>
-
-    {{-- 1️⃣ CSS Link --}}
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 
 <body>
 
-    <div class="login-container">
-        <h2>Login</h2>
+    <h2>Login</h2>
 
-        {{-- 2️⃣ Image Add --}}
-        <div class="login-image">
-            <img src="{{ asset('assets/undraw_education_3vwh.svg') }}" alt="Education Illustration">
+    @if ($errors->any())
+        <p style="color:red">{{ $errors->first() }}</p>
+    @endif
+
+    <form method="POST" action="{{ route('login.submit') }}">
+        @csrf
+        <input type="email" name="email" placeholder="Email" required><br><br>
+        <input type="password" name="password" placeholder="Password" required><br><br>
+        <button type="submit">Login</button>
+    </form>
+
+            </div>
         </div>
-
-        {{-- Error Message --}}
-        @if ($errors->any())
-            <p style="color:red">{{ $errors->first() }}</p>
-        @endif
-
-        <form method="POST" action="{{ route('login.post') }}">
-            @csrf
-
-
-            <input type="email" name="email" placeholder="Email" required><br><br>
-
-            <input type="password" name="password" placeholder="Password" required><br><br>
-
-            <button type="submit">Login</button>
-        </form>
     </div>
-
-    {{-- 3️⃣ JS Link --}}
-    <script src="{{ asset('js/app.js') }}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous">
+    </script>
 </body>
 
 </html>

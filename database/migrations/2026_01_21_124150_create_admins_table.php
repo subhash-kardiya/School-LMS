@@ -11,23 +11,16 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('admins', function (Blueprint $table) {
-            $table->engine = 'InnoDB';
-            $table->bigIncrements('id');
-
+            $table->id();
             $table->string('admin_name');
             $table->string('username')->unique();
             $table->string('email')->unique();
             $table->string('password');
             $table->string('mobile_no', 10);
-
-            $table->unsignedBigInteger('role_id');
-
+            $table->string('profile_image')->nullable(); // <-- remove 'after'
+            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
+            $table->boolean('status')->default(1);
             $table->timestamps();
-
-            $table->foreign('role_id')
-                ->references('id')
-                ->on('roles')
-                ->onDelete('cascade');
         });
     }
 

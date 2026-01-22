@@ -14,10 +14,12 @@ class Admin extends Model
         'email',
         'password',
         'mobile_no',
-        'role_id'
+        'profile_image',
+        'role_id',
+        'status',
     ];
 
     protected $hidden = [
-        'password'
+        'password',
     ];
 }

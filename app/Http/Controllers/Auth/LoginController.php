@@ -8,6 +8,8 @@ use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
+use Illuminate\Support\Facades\Session;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -35,37 +37,73 @@ class LoginController extends Controller
             'email' => 'required|email'
         ]);
 
+        // Generate 6-digit OTP
+        $otp = rand(100000, 999999);
+
+        // Store OTP + email in session
+        session([
+            'reset_email' => $request->email,
+            'reset_otp' => $otp,
+            'otp_time' => now()
+        ]);
+
+        // Send OTP Email
+        Mail::to($request->email)->send(new OtpMail($otp));
+
+        // Redirect to OTP page
         return redirect()->route('otp.page')
             ->with('success', 'OTP has been sent to your email!');
     }
-
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'otp' => 'required|digits:6',
+            'otp' => 'required|numeric'
         ]);
 
+        $storedOtp = session('reset_otp'); // fix here (match your forgotPassword session key)
 
+        if ($request->otp == $storedOtp) {
+            // OTP verified → allow password change
+            session(['otp_verified' => true]);
             return redirect()->route('change.password')->with('success', 'OTP Verified! Now set new password.');
-
+        } else {
+            return back()->with('error', 'Invalid OTP ❌');
+        }
     }
     public function showChangePasswordForm()
     {
-
+        if (!session('otp_verified')) {
+            return redirect()->route('otp.page')->with('error', 'You must verify OTP first!');
+        }
         return view('auth.change-password');
     }
     public function changePassword(Request $request)
     {
+        if (!session('otp_verified')) {
+            return redirect()->route('otp.page')->with('error', 'You must verify OTP first!');
+        }
 
-            return redirect()->route('auth.login')->with('success', 'Password changed successfully ✅');
+        $request->validate([
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $email = session('reset_email');
+        $admin = Admin::where('email', $email)->first();
+
+        if ($admin) {
+            $admin->password = Hash::make($request->password);
+            $admin->save();
+
+            // Clear session keys
+            session()->forget(['reset_email', 'reset_otp', 'otp_verified']);
+
+            return redirect()->route('login')->with('success', 'Password changed successfully ✅');
+        }
 
 
-        return back()->with('error', 'User not found!');
     }
 
 
-
-    
     public function login(Request $request)
     {
         $request->validate([

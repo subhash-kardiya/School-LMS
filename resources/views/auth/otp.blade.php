@@ -28,14 +28,7 @@
                 class="col-lg-6 vh-responsive-50 bg-light d-flex flex-column justify-content-center align-items-center">
                 <h2 class="text-center mb-4 forgot-txt">Enter OTP</h2>
 
-                @if (session('success'))
-                    <div class="alert alert-success w-75">{{ session('success') }}</div>
-                @endif
-                @if (session('error'))
-                    <div class="alert alert-danger w-75">{{ session('error') }}</div>
-                @endif
-                <form class="w-75" method="POST" action="{{ route('verify.otp') }}">
-                    @csrf
+                <form class="w-75" action="{{ route('verify.otp') }}">
                     <div class="mb-4">
                         <label class="form-label forgot-txt">One Time Password</label>
                         <input type="text" name="otp" class="form-control text-center fs-4" maxlength="6"
@@ -44,8 +37,10 @@
                             <a href="#" class="text-decoration-none small">Resend OTP?</a>
                         </div>
                     </div>
+
                     <button type="submit" class="btn w-100 fs-6">Verify</button>
                 </form>
+
             </div>
         </div>
     </div>

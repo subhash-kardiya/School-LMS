@@ -31,24 +31,11 @@
                 class="col-lg-6 vh-responsive-50 bg-light d-flex flex-column justify-content-center align-items-center">
                 <h2 class="text-center mb-4 forgot-txt">Set Password</h2>
 
-                @if (session('success'))
-                    <div class="alert alert-success w-75">{{ session('success') }}</div>
-                @endif
-                @if (session('error'))
-                    <div class="alert alert-danger w-75">{{ session('error') }}</div>
-                @endif
-                <form class="w-75" action="{{ route('change.password.post') }}" method="POST">
+                <form action="{{ route('change.password.post') }}" method="POST">
                     @csrf
-                    <div class="mb-3">
-                        <label class="form-label forgot-txt">New Password</label>
-                        <input type="password" name="password" class="form-control" placeholder="******" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label forgot-txt">Confirm Password</label>
-                        <input type="password" name="password_confirmation" class="form-control" placeholder="******"
-                            required>
-                    </div>
-                    <button type="submit" class="btn w-100 fs-6">Update Password</button>
+                    <input type="password" name="password" placeholder="New Password" required>
+                    <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
+                    <button type="submit">Update Password</button>
                 </form>
 
             </div>

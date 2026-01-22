@@ -31,17 +31,20 @@
 
                 <h2 class="text-center mb-4 forgot-txt">Welcome to LMS</h2>
 
-                <form class="w-75">
+                <form class="w-75" method="POST" action="{{ route('login.post') }}">
+                    @csrf
+
                     <div class="mb-3">
                         <label for="exampleInputEmail1" class="form-label forgot-txt">Email address</label>
-                        <input type="email" class="form-control" id="exampleInputEmail1"
+                        <input type="email" name="email" class="form-control" id="exampleInputEmail1"
                             placeholder="Username / Mobile / Email" aria-describedby="emailHelp">
                     </div>
                     <div class="mb-3">
                         <label for="exampleInputPassword1" class="form-label forgot-txt">Password</label>
-                        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                        <input type="password" name="password" class="form-control" id="exampleInputPassword1"
+                            placeholder="Password">
                     </div>
-                    <a href="forgot-password.html"
+                    <a href="{{ route('auth.forgot.password.post') }}"
                         class="forgot-link link-underline-light d-block mb-3 forgot-txt">Forgot password?</a>
                     <button type="submit" class="btn w-100 fs-6">Submit</button>
                 </form>

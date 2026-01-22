@@ -32,17 +32,26 @@
                 class="col-lg-6 vh-responsive-50 bg-light d-flex flex-column justify-content-center align-items-center">
 
                 <h2 class="text-center mb-4 forgot-txt">Reset Password</h2>
+                @if(session('success'))
+                    <div class="alert alert-success w-75">{{ session('success') }}</div>
+                @endif
 
-                <form class="w-75">
+                @if(session('error'))
+                    <div class="alert alert-danger w-75">{{ session('error') }}</div>
+                @endif
+                <form method="POST" class="w-75">
+                    @csrf
+
 
                     <div class="mb-4">
                         <label for="resetEmail" class="form-label forgot-txt">Email address</label>
-                        <input type="email" class="form-control" id="resetEmail"
+                        <input type="email" name="email" class="form-control" id="resetEmail"
                             placeholder="Enter your registered email" required>
                     </div>
+
                     <button type="submit" class="btn w-100 fs-6 mb-3">Send OTP</button>
                     <div class="text-center">
-                        <a href="login.html" class="forgot-link link-underline-light forgot-txt text-decoration-none">
+                        <a href="{{ route('login') }}" class="forgot-link forgot-txt text-decoration-none">
                             <i class="fas fa-arrow-left me-2"></i>Back to Login
                         </a>
                     </div>

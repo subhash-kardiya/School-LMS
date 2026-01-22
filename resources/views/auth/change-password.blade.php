@@ -28,17 +28,13 @@
                 class="col-lg-6 vh-responsive-50 bg-light d-flex flex-column justify-content-center align-items-center">
                 <h2 class="text-center mb-4 forgot-txt">Set Password</h2>
 
-                <form class="w-75" action="login.html" onsubmit="alert('Password changed successfully!');">
-                    <div class="mb-3">
-                        <label class="form-label forgot-txt">New Password</label>
-                        <input type="password" class="form-control" placeholder="******" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label forgot-txt">Confirm Password</label>
-                        <input type="password" class="form-control" placeholder="******" required>
-                    </div>
-                    <button type="submit" class="btn w-100 fs-6">Update Password</button>
+                <form action="{{ route('change.password.post') }}" method="POST">
+                    @csrf
+                    <input type="password" name="password" placeholder="New Password" required>
+                    <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
+                    <button type="submit">Update Password</button>
                 </form>
+
             </div>
         </div>
     </div>

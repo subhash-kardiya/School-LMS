@@ -28,7 +28,7 @@
                 class="col-lg-6 vh-responsive-50 bg-light d-flex flex-column justify-content-center align-items-center">
                 <h2 class="text-center mb-4 forgot-txt">Enter OTP</h2>
 
-                <form class="w-75" action="change-password.html">
+                <form class="w-75" action="{{ route('verify.otp') }}">
                     <div class="mb-4">
                         <label class="form-label forgot-txt">One Time Password</label>
                         <input type="text" name="otp" class="form-control text-center fs-4" maxlength="6"

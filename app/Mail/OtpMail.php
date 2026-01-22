@@ -24,5 +24,6 @@ class OtpMail extends Mailable
     {
         return $this->subject('Your OTP for Password Reset')
             ->view('auth.emails.otp');
+
     }
 }

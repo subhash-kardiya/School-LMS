@@ -13,12 +13,20 @@ class LoginController extends Controller
 {
     public function showLogin()
     {
-        return redirect()->route('admin.dashboard'); // example
+        return view('auth.login');
     }
-    // public function forgotPassword()
-    // {
-    //     return redirect()->route('auth.forgot.password'); // example
-    // }
+
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function showOtp()
+    {
+        return view('auth.otp');
+    }
+
+
 
 
     public function forgotPassword(Request $request)
@@ -27,20 +35,6 @@ class LoginController extends Controller
             'email' => 'required|email'
         ]);
 
-        // Generate 6-digit OTP
-        $otp = rand(100000, 999999);
-
-        // Store OTP + email in session
-        session([
-            'reset_email' => $request->email,
-            'reset_otp' => $otp,
-            'otp_time' => now()
-        ]);
-
-        // Send OTP Email
-        Mail::to($request->email)->send(new OtpMail($otp));
-
-        // Redirect to OTP page
         return redirect()->route('otp.page')
             ->with('success', 'OTP has been sent to your email!');
     }
@@ -51,87 +45,56 @@ class LoginController extends Controller
             'otp' => 'required|digits:6',
         ]);
 
-        $storedOtp = session('reset_otp'); // fix here (match your forgotPassword session key)
 
-        if ($request->otp == $storedOtp) {
-            // OTP verified → allow password change
-            session(['otp_verified' => true]);
             return redirect()->route('change.password')->with('success', 'OTP Verified! Now set new password.');
-        } else {
-            return back()->with('error', 'Invalid OTP ❌');
-        }
+
     }
     public function showChangePasswordForm()
     {
-        if (!session('otp_verified')) {
-            return redirect()->route('otp.page')->with('error', 'You must verify OTP first!');
-        }
+
         return view('auth.change-password');
     }
     public function changePassword(Request $request)
     {
-        if (!session('otp_verified')) {
-            return redirect()->route('otp.page')->with('error', 'You must verify OTP first!');
-        }
 
-        $request->validate([
-            'password' => 'required|min:6|confirmed',
-        ]);
+            return redirect()->route('auth.login')->with('success', 'Password changed successfully ✅');
 
-        $email = session('reset_email');
-        $admin = Admin::where('email', $email)->first();
-
-        if ($admin) {
-            $admin->password = Hash::make($request->password);
-            $admin->save();
-
-            // Clear session keys
-            session()->forget(['reset_email', 'reset_otp', 'otp_verified']);
-
-            return redirect()->route('login')->with('success', 'Password changed successfully ✅');
-        }
 
         return back()->with('error', 'User not found!');
     }
 
 
 
-
-
-
-
+    
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required',
             'password' => 'required'
         ]);
 
-        $admin = Admin::where('email', $request->email)->first();
+        $login = $request->email; // This can be email / username / mobile
 
-        // dd([
-        //     'admin_exists' => $admin ? true : false,
-        //     'hash' => $admin ? $admin->password : null,
-        //     'check' => $admin ? Hash::check($request->password, $admin->password) : null
-        // ]);
+        // ADMIN
+        $admin = Admin::where('email', $login)
+            ->orWhere('username', $login)
+            ->orWhere('mobile_no', $login)
+            ->first();
 
-        if (!$admin) {
-            return back()->withErrors(['email' => 'Admin not found']);
+        if ($admin && Hash::check($request->password, $admin->password)) {
+            session([
+                'auth_id' => $admin->id,
+                'role' => 'admin'
+            ]);
+            return redirect('/admin/dashboard');
         }
-
-        if (!Hash::check($request->password, $admin->password)) {
-            return back()->withErrors(['password' => 'Incorrect password']);
-        }
-
-        session([
-            'auth_id' => $admin->id,
-            'role' => 'admin'
-        ]);
-
-        return redirect('/admin/dashboard');
 
         // TEACHER
-        $teacher = \App\Models\Teacher::where('email', $request->email)->first();
+        $teacher = \App\Models\Teacher::where('email', $login)
+            ->orWhere('username', $login)
+            ->orWhere('mobile_no', $login)
+            ->first();
+
         if ($teacher && Hash::check($request->password, $teacher->password)) {
             session([
                 'auth_id' => $teacher->id,
@@ -141,7 +104,11 @@ class LoginController extends Controller
         }
 
         // STUDENT
-        $student = \App\Models\Student::where('email', $request->email)->first();
+        $student = \App\Models\Student::where('email', $login)
+            ->orWhere('username', $login)
+            ->orWhere('mobile_no', $login)
+            ->first();
+
         if ($student && Hash::check($request->password, $student->password)) {
             session([
                 'auth_id' => $student->id,
@@ -151,7 +118,11 @@ class LoginController extends Controller
         }
 
         // PARENT
-        $parent = \App\Models\ParentModel::where('email', $request->email)->first();
+        $parent = \App\Models\ParentModel::where('email', $login)
+            ->orWhere('username', $login)
+            ->orWhere('mobile_no', $login)
+            ->first();
+
         if ($parent && Hash::check($request->password, $parent->password)) {
             session([
                 'auth_id' => $parent->id,
@@ -167,6 +138,6 @@ class LoginController extends Controller
     {
         session()->invalidate();
         session()->regenerateToken();
-        return redirect()->route('login');
+        return redirect()->route('auth.login');
     }
 }

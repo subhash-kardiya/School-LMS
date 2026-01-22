@@ -7,7 +7,7 @@
 
 <body>
     <h2>Welcome to Admin Dashboard</h2>
-    <a href="/logout">Logout</a>
+    <a href="{{ route('logout') }}">Logout</a>
 </body>
 
 </html>

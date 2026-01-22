@@ -8,6 +8,8 @@ use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
+use Illuminate\Support\Facades\Session;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -37,62 +39,52 @@ class LoginController extends Controller
             'otp_time' => now()
         ]);
 
-        // Send OTP Email
+        // // Send OTP Email
         Mail::to($request->email)->send(new OtpMail($otp));
 
         // Redirect to OTP page
         return redirect()->route('otp.page')
             ->with('success', 'OTP has been sent to your email!');
     }
-
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'otp' => 'required|digits:6',
+            'otp' => 'required|numeric'
         ]);
 
-        $storedOtp = session('reset_otp'); // fix here (match your forgotPassword session key)
-
-        if ($request->otp == $storedOtp) {
-            // OTP verified → allow password change
+        if ($request->otp == session('reset_otp')) {
             session(['otp_verified' => true]);
-            return redirect()->route('change.password')->with('success', 'OTP Verified! Now set new password.');
-        } else {
-            return back()->with('error', 'Invalid OTP ❌');
+            return redirect()->route('change.password');
         }
+
+        return back()->with('error', 'Invalid OTP');
     }
-    public function showChangePasswordForm()
-    {
-        if (!session('otp_verified')) {
-            return redirect()->route('otp.page')->with('error', 'You must verify OTP first!');
-        }
-        return view('auth.change-password');
-    }
+
     public function changePassword(Request $request)
     {
-        if (!session('otp_verified')) {
-            return redirect()->route('otp.page')->with('error', 'You must verify OTP first!');
-        }
-
         $request->validate([
             'password' => 'required|min:6|confirmed',
         ]);
 
-        $email = session('reset_email');
-        $admin = Admin::where('email', $email)->first();
-
-        if ($admin) {
-            $admin->password = Hash::make($request->password);
-            $admin->save();
-
-            // Clear session keys
-            session()->forget(['reset_email', 'reset_otp', 'otp_verified']);
-
-            return redirect()->route('login')->with('success', 'Password changed successfully ✅');
+        if (!session('otp_verified')) {
+            return redirect()->route('auth.forgot.password')
+                ->with('error', 'OTP not verified');
         }
 
-        return back()->with('error', 'User not found!');
+        $user = User::where('email', session('reset_email'))->first();
+
+        if (!$user) {
+            return back()->with('error', 'User not found');
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        Session::forget(['reset_otp', 'otp_verified', 'reset_email']);
+
+        return redirect()->route('login')->with('success', 'Password changed successfully');
     }
+
 
 
 

@@ -28,17 +28,21 @@
                 class="col-lg-6 vh-responsive-50 bg-light d-flex flex-column justify-content-center align-items-center">
                 <h2 class="text-center mb-4 forgot-txt">Enter OTP</h2>
 
-                <form class="w-75" action="change-password.html">
+                <form class="w-75" action="{{ route('verify.otp') }}" method="POST">
+                    @csrf
+
                     <div class="mb-4">
                         <label class="form-label forgot-txt">One Time Password</label>
-                        <input type="text" class="form-control text-center fs-4" maxlength="6"
+                        <input type="text" name="otp" class="form-control text-center fs-4" maxlength="6"
                             style="letter-spacing: 10px;" required>
                         <div class="form-text text-end mt-2">
                             <a href="#" class="text-decoration-none small">Resend OTP?</a>
                         </div>
                     </div>
+
                     <button type="submit" class="btn w-100 fs-6">Verify</button>
                 </form>
+
             </div>
         </div>
     </div>

@@ -28,8 +28,9 @@
                 class="col-lg-6 vh-responsive-50 bg-light d-flex flex-column justify-content-center align-items-center">
                 <h2 class="text-center mb-4 forgot-txt">Set Password</h2>
 
-                <form action="{{ route('change.password.post') }}" method="POST">
+                <form method="POST" action="{{ route('change.password.post') }}">
                     @csrf
+
                     <input type="password" name="password" placeholder="New Password" required>
                     <input type="password" name="password_confirmation" placeholder="Confirm Password" required>
                     <button type="submit">Update Password</button>

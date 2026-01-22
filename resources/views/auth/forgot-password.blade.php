@@ -39,8 +39,9 @@
                 @if(session('error'))
                     <div class="alert alert-danger w-75">{{ session('error') }}</div>
                 @endif
-                <form method="POST" class="w-75">
+                <form method="POST" action="{{ route('auth.forgot.password.post') }}" class=" w-75">
                     @csrf
+
 
 
                     <div class="mb-4">

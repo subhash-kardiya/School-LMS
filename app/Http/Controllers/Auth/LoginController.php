@@ -46,7 +46,7 @@ class LoginController extends Controller
         ]);
 
 
-            return redirect()->route('change.password')->with('success', 'OTP Verified! Now set new password.');
+        return redirect()->route('change.password')->with('success', 'OTP Verified! Now set new password.');
 
     }
     public function showChangePasswordForm()
@@ -57,7 +57,7 @@ class LoginController extends Controller
     public function changePassword(Request $request)
     {
 
-            return redirect()->route('auth.login')->with('success', 'Password changed successfully ✅');
+        return redirect()->route('auth.login')->with('success', 'Password changed successfully ✅');
 
 
         return back()->with('error', 'User not found!');
@@ -65,7 +65,7 @@ class LoginController extends Controller
 
 
 
-    
+
     public function login(Request $request)
     {
         $request->validate([
@@ -82,11 +82,12 @@ class LoginController extends Controller
             ->first();
 
         if ($admin && Hash::check($request->password, $admin->password)) {
+            $adminRole = ($admin->role_id == 1) ? 'superadmin' : 'admin';
             session([
                 'auth_id' => $admin->id,
-                'role' => 'admin'
+                'role' => $adminRole
             ]);
-            return redirect('/admin/dashboard');
+            return redirect()->route('admin.dashboard');
         }
 
         // TEACHER
@@ -100,7 +101,7 @@ class LoginController extends Controller
                 'auth_id' => $teacher->id,
                 'role' => 'teacher'
             ]);
-            return redirect('/teacher/dashboard');
+            return redirect()->route('teacher.dashboard');
         }
 
         // STUDENT
@@ -114,7 +115,7 @@ class LoginController extends Controller
                 'auth_id' => $student->id,
                 'role' => 'student'
             ]);
-            return redirect('/student/dashboard');
+            return redirect()->route('student.dashboard');
         }
 
         // PARENT
@@ -128,7 +129,7 @@ class LoginController extends Controller
                 'auth_id' => $parent->id,
                 'role' => 'parent'
             ]);
-            return redirect('/parent/dashboard');
+            return redirect()->route('parent.dashboard');
         }
 
         return back()->withErrors(['email' => 'Invalid login details']);

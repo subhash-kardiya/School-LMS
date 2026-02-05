@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Traits\HasPermissions;
 
-class Admin extends Model
+class Admin extends Authenticatable
 {
+    use HasPermissions;
     protected $table = 'admins';
 
     protected $fillable = [

@@ -6,11 +6,22 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\ParentController;
+use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
+use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Parent\DashboardController as ParentDashboardController;
+use App\Http\Controllers\Admin\AcademicYearController;
+use App\Http\Controllers\Admin\SectionController;
+use App\Http\Controllers\Admin\TeacherMappingController;
+use App\Http\Controllers\Admin\ClassController;
+use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Admin\RoleController;
+
 
 // =====================
 // Authentication Routes
 // =====================
 
+Route::middleware(['guest.custom'])->group(function () {
     // Login
     Route::get('/login', fn() => view('auth.login'))->name('auth.login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -26,37 +37,214 @@ use App\Http\Controllers\Admin\ParentController;
     // Change Password
     Route::get('/change-password', fn() => view('auth.change-password'))->name('change.password');
     Route::post('/change-password', [LoginController::class, 'changePassword'])->name('change.password.post');
-
-    // Logout
-    Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
-
+});
 
 // =====================
-// Dashboard Routes
+// Common Routes (Permission Based)
 // =====================
+Route::middleware(['auth.session'])->prefix('admin')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+    Route::middleware(['admin.access'])->group(function () {
+        // Academic Year CRUD (uses resource routes)
+        Route::middleware(['permission:academic_year_manage'])->group(function () {
+            Route::get('/academic-year', [AcademicYearController::class, 'index'])->name('academic.year.index');
+            Route::post('/academic-year/store', [AcademicYearController::class, 'store'])->name('academic.year.store');
+            Route::get('/academic-year/active/{id}', [AcademicYearController::class, 'setActive']);
+            Route::get('/academic-year/{id}/edit', [AcademicYearController::class, 'edit'])->name('academic.year.edit');
+            Route::put('/academic-year/{id}', [AcademicYearController::class, 'update'])->name('academic.year.update');
+            Route::delete('/academic-year/{id}', [AcademicYearController::class, 'destroy'])->name('academic.year.destroy');
+        });
+
+        Route::middleware(['permission:class_manage'])->group(function () {
+            Route::get('/classes', [ClassController::class, 'index'])->name('classes.index');
+            Route::get('/classes/create', [ClassController::class, 'create'])->name('classes.create');
+            Route::post('/classes/store', [ClassController::class, 'store'])->name('classes.store');
+            Route::get('/classes/{id}', [ClassController::class, 'show'])->name('classes.show');
+            Route::get('/classes/{id}/edit', [ClassController::class, 'edit'])->name('classes.edit');
+            Route::put('/classes/{id}', [ClassController::class, 'update'])->name('classes.update');
+            Route::delete('/classes/{id}', [ClassController::class, 'destroy'])->name('classes.destroy');
+        });
+
+        // Sections
+        Route::middleware(['permission:section_manage'])->group(function () {
+            Route::get('/section', [SectionController::class, 'index'])->name('section.index');
+            Route::post('/section/store', [SectionController::class, 'store'])->name('section.store');
+            Route::delete('/section/{id}', [SectionController::class, 'destroy'])->name('section.destroy');
+            Route::get('/section/{id}', [SectionController::class, 'show'])->name('section.show');
+            Route::get('/section/{id}/edit', [SectionController::class, 'edit'])->name('section.edit');
+            Route::put('/section/{id}', [SectionController::class, 'update'])->name('section.update');
+        });
+
+        // Teachers
+        Route::middleware(['permission:teacher_view'])->group(function () {
+            Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+            Route::get('/teachers/{id}', [TeacherController::class, 'show'])
+                ->whereNumber('id')
+                ->name('teachers.show');
+        });
+        Route::middleware(['permission:teacher_add'])->group(function () {
+            Route::get('/teachers/create', [TeacherController::class, 'create'])->name('teachers.create');
+            Route::post('/teachers/store', [TeacherController::class, 'store'])->name('teachers.store');
+        });
+        Route::middleware(['permission:teacher_edit'])->group(function () {
+            Route::get('/teachers/{id}/edit', [TeacherController::class, 'edit'])
+                ->whereNumber('id')
+                ->name('teachers.edit');
+            Route::put('/teachers/{id}', [TeacherController::class, 'update'])
+                ->whereNumber('id')
+                ->name('teachers.update');
+        });
+        Route::middleware(['permission:teacher_delete'])->group(function () {
+            Route::delete('/teachers/{id}', [TeacherController::class, 'destroy'])
+                ->whereNumber('id')
+                ->name('teachers.destroy');
+        });
+
+        // Students
+        Route::middleware(['permission:student_view'])->group(function () {
+            Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+            Route::get('/students/data', [StudentController::class, 'getStudents'])->name('students.data');
+            Route::get('/students/{id}', [StudentController::class, 'show'])
+                ->whereNumber('id')
+                ->name('students.show');
+            Route::get('/get-sections/{class_id}', [StudentController::class, 'getSections'])->name('get.sections');
+            Route::get('/get-class-details/{class_id}', [StudentController::class, 'getClassDetails'])->name('get.class.details');
+        });
+        Route::middleware(['permission:student_add'])->group(function () {
+            Route::get('/students/create', [StudentController::class, 'create'])->name('students.create');
+            Route::post('/students/store', [StudentController::class, 'store'])->name('students.store');
+        });
+        Route::middleware(['permission:student_edit'])->group(function () {
+            Route::get('/students/{id}/edit', [StudentController::class, 'edit'])
+                ->whereNumber('id')
+                ->name('students.edit');
+            Route::put('/students/{id}', [StudentController::class, 'update'])
+                ->whereNumber('id')
+                ->name('students.update');
+        });
+        Route::middleware(['permission:student_delete'])->group(function () {
+            Route::delete('/students/{id}', [StudentController::class, 'destroy'])
+                ->whereNumber('id')
+                ->name('students.destroy');
+        });
+
+        // Parents
+        Route::middleware(['permission:parent_manage'])->group(function () {
+            Route::get('/parents', [ParentController::class, 'index'])->name('parents.index');
+            Route::get('/parents/data', [ParentController::class, 'getParents'])->name('parents.data');
+            Route::get('/parents/create', [ParentController::class, 'create'])->name('parents.create');
+            Route::post('/parents/store', [ParentController::class, 'store'])->name('parents.store');
+            Route::get('/parents/{id}', [ParentController::class, 'show'])->name('parents.show');
+            Route::get('/parents/{id}/edit', [ParentController::class, 'edit'])->name('parents.edit');
+            Route::put('/parents/{id}', [ParentController::class, 'update'])->name('parents.update');
+            Route::delete('/parents/{id}', [ParentController::class, 'destroy'])->name('parents.destroy');
+        });
+
+        // Subjects
+        Route::middleware(['permission:subject_manage'])->group(function () {
+            Route::get('/subjects', [SubjectController::class, 'index'])->name('subjects.index');
+            Route::post('/subjects/store', [SubjectController::class, 'store'])->name('subjects.store');
+            Route::get('/subjects/{id}', [SubjectController::class, 'show'])->name('subjects.show');
+            Route::get('/subjects/{id}/edit', [SubjectController::class, 'edit'])->name('subjects.edit');
+            Route::put('/subjects/{id}', [SubjectController::class, 'update'])->name('subjects.update');
+            Route::delete('/subjects/{id}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
+        });
+
+        // Teacher Mapping
+        Route::middleware(['permission:class_manage'])->group(function () {
+            Route::get('/teacher-mapping', [TeacherMappingController::class, 'index'])->name('teacher.mapping');
+            Route::post('/teacher-mapping/store', [TeacherMappingController::class, 'store'])->name('teacher.mapping.store');
+            Route::delete('/teacher-mapping/{id}', [TeacherMappingController::class, 'destroy'])->name('teacher.mapping.destroy');
+        });
+
+        // Role and Permission
+        Route::middleware(['permission:role_view'])->group(function () {
+            Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+        });
+        Route::middleware(['permission:role_add'])->group(function () {
+            Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+        });
+        Route::middleware(['permission:role_edit'])->group(function () {
+            Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+            Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+        });
+        Route::middleware(['permission:role_delete'])->group(function () {
+            Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+        });
+
+        // Certificate
+        Route::get('/certificate', fn() => view('certificate.index'))->name('certificate.index');
+    });
 
 
-// Role-based dashboard routes using controllers and middleware
-Route::middleware(['role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    // Default redirect for admin base URL
+    Route::get('/', fn() => redirect()->route('auth.login'));
+
+    // =====================
+    // Demo Routes (Timetable, Homework, Exams, Results, Communication, Certificate)
+    // =====================
+    Route::get('/timetable/class', fn() => view('timetable.class'))->name('timetable.class');
+    Route::get('/timetable/teacher', fn() => view('timetable.teacher'))->name('timetable.teacher');
+
+    Route::get('/homework/create', fn() => view('homework.create'))->name('homework.create');
+    Route::get('/homework/list', fn() => view('homework.list'))->name('homework.list');
+    Route::get('/homework/submission', fn() => view('homework.submission'))->name('homework.submission');
+
+    Route::get('/exams/type', fn() => view('exams.type'))->name('exams.type');
+    Route::get('/exams/schedule', fn() => view('exams.schedule'))->name('exams.schedule');
+    Route::get('/exams/marks', fn() => view('exams.marks'))->name('exams.marks');
+
+    Route::get('/results', fn() => view('results.index'))->name('results.index');
+
+    Route::get('/communication/announcements', fn() => view('communication.announcements'))->name('communication.announcements');
+
 });
 
-Route::middleware(['role:teacher'])->group(function () {
-    Route::get('/teacher/dashboard', [App\Http\Controllers\Admin\TeacherController::class, 'dashboard'])->name('teacher.dashboard');
+// =====================
+// Teacher Routes
+// =====================
+Route::middleware(['role:teacher'])->prefix('teacher')->group(function () {
+    Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
+    Route::get('/classes-subjects', fn() => view('teacher.classes-subjects'))->name('teacher.classes.subjects');
+    Route::get('/homework', fn() => view('teacher.homework'))->name('teacher.homework');
+    Route::get('/exams', fn() => view('teacher.exams'))->name('teacher.exams');
+    Route::get('/performance', fn() => view('teacher.performance'))->name('teacher.performance');
 });
 
-Route::middleware(['role:student'])->group(function () {
-    Route::get('/student/dashboard', [App\Http\Controllers\Admin\StudentController::class, 'dashboard'])->name('student.dashboard');
+// =====================
+// Student Routes
+// =====================
+Route::middleware(['role:student'])->prefix('student')->group(function () {
+    Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+    Route::get('/subjects', fn() => view('student.subjects'))->name('student.subjects');
+    Route::get('/homework', fn() => view('student.homework'))->name('student.homework');
+    Route::get('/online-classes', fn() => view('student.online-classes'))->name('student.online.classes');
+    Route::get('/exams-results', fn() => view('student.exams-results'))->name('student.exams.results');
+    Route::get('/certificates', fn() => view('student.certificates'))->name('student.certificates');
 });
 
-Route::middleware(['role:parent'])->group(function () {
-    Route::get('/parent/dashboard', [App\Http\Controllers\Admin\ParentController::class, 'dashboard'])->name('parent.dashboard');
+// =====================
+// Parent Routes
+// =====================
+Route::middleware(['role:parent'])->prefix('parent')->group(function () {
+    Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('parent.dashboard');
+    Route::get('/attendance', fn() => view('parent.attendance'))->name('parent.attendance');
+    Route::get('/homework-status', fn() => view('parent.homework-status'))->name('parent.homework.status');
+    Route::get('/exam-results', fn() => view('parent.exam-results'))->name('parent.exam.results');
+    Route::get('/notices', fn() => view('parent.notices'))->name('parent.notices');
 });
 
+// Logout
+Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
 
 // =====================
 // Default Redirect
 // =====================
 Route::get('/', fn() => redirect()->route('auth.login'));
 
-?>
+// =====================
+// Convenience Redirects (non-admin to admin)
+// =====================
